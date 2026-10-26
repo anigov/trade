@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Strategy Engine | Trade Lab</title>
+    <link rel="stylesheet" href="strategy-engine.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="wordmark" href="strategy-builder.html">trade<span>lab</span></a>
+        <div class="status-badge">
+          <span class="dot"></span>
+          Local backtest engine
+        </div>
+      </header>
+
+      <main class="page-layout">
+        <section class="panel summary-panel">
+          <p class="eyebrow">ENGINE / SAMPLE TEST</p>
+          <h1 id="engine-title">Strategy Engine</h1>
+          <div class="summary-grid">
+            <div class="metric">
+              <span>Final capital</span>
+              <strong id="final-capital">₹0</strong>
+            </div>
+            <div class="metric">
+              <span>Net P&amp;L</span>
+              <strong id="net-pnl">₹0</strong>
+            </div>
+            <div class="metric">
+              <span>Trades</span>
+              <strong id="trade-count">0</strong>
+            </div>
+            <div class="metric">
+              <span>Win rate</span>
+              <strong id="win-rate">0%</strong>
+            </div>
+            <div class="metric">
+              <span>Max drawdown</span>
+              <strong id="max-drawdown">0%</strong>
+            </div>
+            <div class="metric">
+              <span>Universe</span>
+              <strong id="engine-universe">—</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-head">
+            <h2>Backtest result</h2>
+            <button id="rerun-button" class="primary-button" type="button">Run again</button>
+          </div>
+          <div id="error-box" class="error-box hidden"></div>
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Entry</th>
+                <th>Exit</th>
+                <th>Qty</th>
+                <th>P&amp;L</th>
+              </tr>
+            </thead>
+            <tbody id="trades-body"></tbody>
+          </table>
+        </section>
+      </main>
+    </div>
+
+    <script src="strategy-engine.js"></script>
+  </body>
+</html>

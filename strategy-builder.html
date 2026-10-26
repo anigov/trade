@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#eef1eb">
+    <title>Strategy Intake | Trade Lab</title>
+    <link rel="stylesheet" href="strategy-builder.css">
+    <script src="strategy-builder.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="wordmark" href="strategy-builder.html" aria-label="Trade Lab home">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <span>trade<span class="wordmark-light">lab</span></span>
+        </a>
+        <div class="topbar-meta">
+          <span class="mode-indicator"><span class="mode-dot"></span>Research mode</span>
+          <span class="topbar-divider" aria-hidden="true"></span>
+          <span class="step-label">SETUP <b>01</b> / 09</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="page-intro" aria-labelledby="page-title">
+          <p class="eyebrow">INDIAN EQUITIES <span>·</span> STRATEGY WORKSPACE</p>
+          <div class="intro-row">
+            <div>
+              <h1 id="page-title">Strategy intake</h1>
+              <p class="intro-copy">Capture the rules and assumptions for your first strategy.</p>
+            </div>
+            <div class="local-badge"><span aria-hidden="true">01</span> Local draft</div>
+          </div>
+        </section>
+
+        <div class="workspace-grid">
+          <section class="form-section" aria-labelledby="form-title">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">DEFINE</p>
+                <h2 id="form-title">Strategy details</h2>
+              </div>
+              <span id="draft-status" class="save-status" role="status">No draft saved</span>
+            </div>
+
+            <form id="strategy-form">
+              <fieldset>
+                <legend><span>01</span> Identity &amp; market</legend>
+                <div class="field-grid">
+                  <label class="field field-wide" for="strategy-name">
+                    <span>Strategy name <i>*</i></span>
+                    <input id="strategy-name" name="name" type="text" maxlength="80" placeholder="e.g. Opening range breakout" required>
+                  </label>
+                  <label class="field" for="exchange">
+                    <span>Exchange <i>*</i></span>
+                    <select id="exchange" name="exchange" required>
+                      <option value="NSE">NSE</option>
+                      <option value="BSE">BSE</option>
+                    </select>
+                  </label>
+                  <label class="field" for="timeframe">
+                    <span>Bar timeframe <i>*</i></span>
+                    <select id="timeframe" name="timeframe" required>
+                      <option value="1 minute">1 minute</option>
+                      <option value="5 minutes" selected>5 minutes</option>
+                      <option value="15 minutes">15 minutes</option>
+                      <option value="1 hour">1 hour</option>
+                      <option value="1 day">1 day</option>
+                    </select>
+                  </label>
+                  <label class="field field-wide" for="universe">
+                    <span>Universe <i>*</i></span>
+                    <div class="check-grid" aria-label="Select one or more universes">
+                      <label class="check-option"><input type="checkbox" name="universeSelection" value="NIFTY 50"> NIFTY 50</label>
+                      <label class="check-option"><input type="checkbox" name="universeSelection" value="NIFTY 100"> NIFTY 100</label>
+                      <label class="check-option"><input type="checkbox" name="universeSelection" value="NIFTY 500"> NIFTY 500</label>
+                      <label class="check-option"><input type="checkbox" name="universeSelection" value="Midcap"> Midcap</label>
+                      <label class="check-option"><input type="checkbox" name="universeSelection" value="Smallcap"> Smallcap</label>
+                      <label class="check-option"><input type="checkbox" name="universeSelection" value="Banking"> Banking</label>
+                      <label class="check-option"><input type="checkbox" name="universeSelection" value="IT"> IT</label>
+                      <label class="check-option"><input type="checkbox" name="universeSelection" value="Custom symbols"> Custom symbols</label>
+                    </div>
+                  </label>
+                  <label class="field" for="trade-style">
+                    <span>Trade style <i>*</i></span>
+                    <select id="trade-style" name="tradeStyle" required>
+                      <option value="Intraday">Intraday</option>
+                      <option value="Delivery">Delivery</option>
+                    </select>
+                  </label>
+                  <label class="field field-wide" for="symbols">
+                    <span>Custom symbols <small>Optional</small></span>
+                    <input id="symbols" name="customSymbols" type="text" placeholder="RELIANCE, INFY, TCS">
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend><span>02</span> Entry &amp; exit rules</legend>
+                <div class="field-grid">
+                  <label class="field field-wide" for="entry-rule">
+                    <span>Entry conditions <i>*</i></span>
+                    <textarea id="entry-rule" name="entryRule" rows="4" maxlength="2000" placeholder="Describe the exact conditions that create an entry signal." required></textarea>
+                  </label>
+                  <label class="field field-wide" for="exit-rule">
+                    <span>Exit conditions <i>*</i></span>
+                    <textarea id="exit-rule" name="exitRule" rows="4" maxlength="2000" placeholder="Describe profit-taking, time-based, and invalidation exits." required></textarea>
+                  </label>
+                </div>
+                <p class="field-note"><span aria-hidden="true">i</span> Rule text is saved as a definition only; it is not executed or backtested.</p>
+              </fieldset>
+
+              <fieldset>
+                <legend><span>03</span> Risk &amp; costs</legend>
+                <div class="field-grid numeric-grid">
+                  <label class="field" for="capital">
+                    <span>Starting capital <small>INR</small></span>
+                    <input id="capital" name="capitalInr" type="number" min="1" step="1000" value="100000" required>
+                  </label>
+                  <label class="field" for="risk-percent">
+                    <span>Risk per trade <small>% of capital</small></span>
+                    <input id="risk-percent" name="riskPerTradePct" type="number" min="0.01" step="0.01" value="1" required>
+                  </label>
+                  <label class="field" for="stop-loss">
+                    <span>Stop loss <small>%</small></span>
+                    <input id="stop-loss" name="stopLossPct" type="number" min="0.01" step="0.01" placeholder="Optional">
+                  </label>
+                  <label class="field" for="target">
+                    <span>Profit target <small>%</small></span>
+                    <input id="target" name="targetPct" type="number" min="0.01" step="0.01" placeholder="Optional">
+                  </label>
+                  <label class="field" for="max-positions">
+                    <span>Max open positions</span>
+                    <input id="max-positions" name="maxOpenPositions" type="number" min="1" max="500" step="1" value="5" required>
+                  </label>
+                  <label class="field" for="brokerage">
+                    <span>Brokerage <small>INR / order</small></span>
+                    <input id="brokerage" name="brokeragePerOrderInr" type="number" min="0" step="1" value="20" required>
+                  </label>
+                  <label class="field" for="slippage">
+                    <span>Estimated slippage <small>basis points</small></span>
+                    <input id="slippage" name="slippageBps" type="number" min="0" step="1" value="5" required>
+                  </label>
+                  <label class="field" for="benchmark">
+                    <span>Benchmark</span>
+                    <select id="benchmark" name="benchmark">
+                      <option value="NIFTY 50">NIFTY 50</option>
+                      <option value="NIFTY 500">NIFTY 500</option>
+                      <option value="None">None</option>
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend><span>04</span> Evaluation window</legend>
+                <div class="field-grid">
+                  <label class="field" for="start-date">
+                    <span>Start date <small>Optional</small></span>
+                    <input id="start-date" name="startDate" type="date">
+                  </label>
+                  <label class="field" for="end-date">
+                    <span>End date <small>Optional</small></span>
+                    <input id="end-date" name="endDate" type="date">
+                  </label>
+                </div>
+              </fieldset>
+
+              <div class="form-actions">
+                <button class="button button-primary" type="submit">Save strategy</button>
+                <button class="button button-secondary" id="backtest-button" type="button">Run sample backtest</button>
+                <button class="button button-secondary" id="export-button" type="button">Export JSON</button>
+                <button class="button button-quiet" id="reset-button" type="reset">Clear form</button>
+              </div>
+            </form>
+          </section>
+
+          <aside class="summary-panel" aria-labelledby="summary-title">
+            <div class="summary-topline">
+              <span class="summary-mark">TL / 01</span>
+              <span class="summary-state"><span></span> NOT TESTED</span>
+            </div>
+            <p class="section-kicker">LIVE DEFINITION</p>
+            <h2 id="summary-title">Untitled strategy</h2>
+            <p id="summary-market" class="summary-market">NSE · NIFTY 50 · 5 minutes</p>
+            <div class="summary-rule">
+              <span>ENTRY</span>
+              <p id="summary-entry">No entry conditions yet.</p>
+            </div>
+            <div class="summary-rule">
+              <span>EXIT</span>
+              <p id="summary-exit">No exit conditions yet.</p>
+            </div>
+            <dl class="summary-metrics">
+              <div><dt>Capital</dt><dd id="summary-capital">₹1,00,000</dd></div>
+              <div><dt>Risk / trade</dt><dd id="summary-risk">1%</dd></div>
+              <div><dt>Max positions</dt><dd id="summary-positions">5</dd></div>
+              <div><dt>Brokerage</dt><dd id="summary-cost">₹20 / order</dd></div>
+            </dl>
+            <p class="summary-footnote">Research definition only. No broker connection or order placement.</p>
+          </aside>
+        </div>
+
+        <section class="saved-section" aria-labelledby="saved-title">
+          <div class="saved-heading">
+            <div>
+              <p class="section-kicker">YOUR WORKSPACE</p>
+              <h2 id="saved-title">Saved strategies <span id="saved-count">0</span></h2>
+            </div>
+            <span class="storage-note">Stored in this browser</span>
+          </div>
+          <ul id="saved-list" class="saved-list" aria-live="polite"></ul>
+          <p id="empty-state" class="empty-state">Your saved strategy definitions will appear here.</p>
+        </section>
+      </main>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <footer class="page-footer"><span>TRADE LAB / RESEARCH INTAKE</span><span>01 — STRATEGY DEFINITION</span></footer>
+    </div>
+  </body>
+</html>
