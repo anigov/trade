@@ -10,6 +10,11 @@
     <div class="app-shell">
       <header class="topbar">
         <a class="wordmark" href="strategy-builder.html">trade<span>lab</span></a>
+        <nav class="page-nav" aria-label="Main navigation">
+          <a href="strategy-builder.html">Strategy builder</a>
+          <a href="strategy-builder.html#saved-title">Saved strategies</a>
+          <a href="fundamentals.html">Fundamental screen</a>
+        </nav>
         <div class="status-badge">
           <span class="dot"></span>
           Local backtest engine
@@ -45,6 +50,14 @@
               <span>Universe</span>
               <strong id="engine-universe">—</strong>
             </div>
+            <div class="metric">
+              <span>Last run</span>
+              <strong id="run-time">—</strong>
+            </div>
+            <div class="metric">
+              <span>Data source</span>
+              <strong id="data-source">—</strong>
+            </div>
           </div>
         </section>
 
@@ -58,6 +71,7 @@
             <thead>
               <tr>
                 <th>Symbol</th>
+                <th>Dates</th>
                 <th>Side</th>
                 <th>Entry</th>
                 <th>Exit</th>

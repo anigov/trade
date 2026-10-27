@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#eef1eb">
+    <title>Fundamental Screen | Trade Lab</title>
+    <link rel="stylesheet" href="fundamentals.css">
+    <script src="fundamentals.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="wordmark" href="strategy-builder.html" aria-label="Trade Lab home">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <span>trade<span class="wordmark-light">lab</span></span>
+        </a>
+        <nav class="page-nav" aria-label="Main navigation">
+          <a href="strategy-builder.html">Strategy builder</a>
+          <a href="strategy-engine.html">Backtests</a>
+          <a class="active" href="fundamentals.html" aria-current="page">Fundamental screen</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="page-intro">
+          <p class="eyebrow">INDIAN EQUITIES <span>·</span> COMPANY RESEARCH</p>
+          <div class="intro-row">
+            <div>
+              <h1>Fundamental screen</h1>
+              <p class="intro-copy">Build a shortlist from company metrics and the thresholds you choose.</p>
+            </div>
+            <div class="local-badge"><span aria-hidden="true">DB</span> SQLite workspace</div>
+          </div>
+        </section>
+
+        <section class="data-note" role="note">
+          <strong>Data provenance matters.</strong> Enter figures from a source you trust and record its name and as-of date. This screen does not fetch or verify fundamentals automatically; a match only means the entered record meets your selected filters.
+        </section>
+
+        <div class="workspace-grid">
+          <section class="form-section" aria-labelledby="company-title">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">COMPANY DATA</p>
+                <h2 id="company-title">Add or update a company</h2>
+              </div>
+              <span id="form-status" class="save-status" role="status">Ready</span>
+            </div>
+
+            <form id="company-form">
+              <div class="field-grid">
+                <label class="field" for="symbol">
+                  <span>Symbol <i>*</i></span>
+                  <input id="symbol" name="symbol" maxlength="24" placeholder="e.g. INFY" required>
+                </label>
+                <label class="field" for="company-name">
+                  <span>Company name <i>*</i></span>
+                  <input id="company-name" name="company_name" maxlength="120" placeholder="e.g. Infosys Limited" required>
+                </label>
+                <label class="field" for="exchange">
+                  <span>Exchange</span>
+                  <select id="exchange" name="exchange">
+                    <option value="NSE">NSE</option>
+                    <option value="BSE">BSE</option>
+                  </select>
+                </label>
+                <label class="field" for="sector">
+                  <span>Sector</span>
+                  <input id="sector" name="sector" maxlength="80" placeholder="e.g. Information Technology">
+                </label>
+                <label class="field" for="market-cap">
+                  <span>Market cap <small>₹ crore</small></span>
+                  <input id="market-cap" name="market_cap_cr" type="number" min="0" step="0.01">
+                </label>
+                <label class="field" for="pe-ratio">
+                  <span>P/E ratio</span>
+                  <input id="pe-ratio" name="pe_ratio" type="number" step="0.01">
+                </label>
+                <label class="field" for="roe">
+                  <span>ROE <small>%</small></span>
+                  <input id="roe" name="roe_pct" type="number" step="0.01">
+                </label>
+                <label class="field" for="roce">
+                  <span>ROCE <small>%</small></span>
+                  <input id="roce" name="roce_pct" type="number" step="0.01">
+                </label>
+                <label class="field" for="debt-equity">
+                  <span>Debt / equity</span>
+                  <input id="debt-equity" name="debt_equity" type="number" min="0" step="0.01">
+                </label>
+                <label class="field" for="revenue-growth">
+                  <span>Revenue growth <small>%</small></span>
+                  <input id="revenue-growth" name="revenue_growth_pct" type="number" step="0.01">
+                </label>
+                <label class="field" for="profit-growth">
+                  <span>Profit growth <small>%</small></span>
+                  <input id="profit-growth" name="profit_growth_pct" type="number" step="0.01">
+                </label>
+                <label class="field" for="promoter-holding">
+                  <span>Promoter holding <small>%</small></span>
+                  <input id="promoter-holding" name="promoter_holding_pct" type="number" min="0" max="100" step="0.01">
+                </label>
+                <label class="field" for="source">
+                  <span>Data source <i>*</i></span>
+                  <input id="source" name="source" maxlength="160" placeholder="e.g. company annual report FY2025" required>
+                </label>
+                <label class="field" for="as-of-date">
+                  <span>As-of date <i>*</i></span>
+                  <input id="as-of-date" name="as_of_date" type="date" required>
+                </label>
+              </div>
+              <div class="form-actions">
+                <button class="button button-primary" type="submit">Save company data</button>
+                <button class="button button-secondary" id="clear-form" type="reset">Clear form</button>
+              </div>
+            </form>
+          </section>
+
+          <aside class="filter-panel" aria-labelledby="filters-title">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">SCREEN RULES</p>
+                <h2 id="filters-title">Set your thresholds</h2>
+              </div>
+              <button id="clear-filters" class="text-button" type="button">Clear</button>
+            </div>
+            <p class="filter-copy">Leave a field empty to ignore that metric. A company with a missing value will not pass an active filter for that metric.</p>
+            <div class="filter-grid">
+              <label class="field" for="filter-market-cap"><span>Min market cap <small>₹ crore</small></span><input id="filter-market-cap" data-filter="market_cap_cr" data-op="min" type="number" min="0" step="100"></label>
+              <label class="field" for="filter-pe"><span>Max P/E</span><input id="filter-pe" data-filter="pe_ratio" data-op="max" type="number" step="0.1"></label>
+              <label class="field" for="filter-roe"><span>Min ROE <small>%</small></span><input id="filter-roe" data-filter="roe_pct" data-op="min" type="number" step="0.1"></label>
+              <label class="field" for="filter-roce"><span>Min ROCE <small>%</small></span><input id="filter-roce" data-filter="roce_pct" data-op="min" type="number" step="0.1"></label>
+              <label class="field" for="filter-debt"><span>Max debt / equity</span><input id="filter-debt" data-filter="debt_equity" data-op="max" type="number" min="0" step="0.05"></label>
+              <label class="field" for="filter-revenue"><span>Min revenue growth <small>%</small></span><input id="filter-revenue" data-filter="revenue_growth_pct" data-op="min" type="number" step="0.1"></label>
+              <label class="field" for="filter-profit"><span>Min profit growth <small>%</small></span><input id="filter-profit" data-filter="profit_growth_pct" data-op="min" type="number" step="0.1"></label>
+              <label class="field" for="filter-promoter"><span>Min promoter holding <small>%</small></span><input id="filter-promoter" data-filter="promoter_holding_pct" data-op="min" type="number" min="0" max="100" step="0.1"></label>
+            </div>
+          </aside>
+        </div>
+
+        <section class="results-section" aria-labelledby="qualified-title">
+          <div class="saved-heading">
+            <div>
+              <p class="section-kicker">FILTERED UNIVERSE</p>
+              <h2 id="qualified-title">Companies meeting your filters <span id="qualified-count">0</span></h2>
+            </div>
+            <span id="screen-summary" class="storage-note">Loading company records…</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Company</th><th>Sector</th><th>Market cap ₹Cr</th><th>P/E</th><th>ROE</th><th>ROCE</th><th>D/E</th><th>Revenue growth</th><th>Profit growth</th><th>Source / as-of</th></tr></thead>
+              <tbody id="qualified-list"></tbody>
+            </table>
+          </div>
+          <p id="qualified-empty" class="empty-state" hidden>No companies match the current filters. Add sourced company values or relax a threshold.</p>
+        </section>
+
+        <section class="results-section company-section" aria-labelledby="companies-title">
+          <div class="saved-heading">
+            <div>
+              <p class="section-kicker">LOCAL DATABASE</p>
+              <h2 id="companies-title">Company records <span id="company-count">0</span></h2>
+            </div>
+            <span class="storage-note">Saved in SQLite on this machine</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Company</th><th>Exchange</th><th>Sector</th><th>ROE</th><th>ROCE</th><th>P/E</th><th>Data source</th><th>As of</th><th>Actions</th></tr></thead>
+              <tbody id="company-list"></tbody>
+            </table>
+          </div>
+          <p id="company-empty" class="empty-state" hidden>No company records yet. Add a company and cite the source for its figures.</p>
+        </section>
+      </main>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <footer class="page-footer"><span>TRADE LAB / FUNDAMENTAL RESEARCH</span><span>NO AUTO-FETCH · USER-SOURCED FIGURES</span></footer>
+    </div>
+  </body>
+</html>

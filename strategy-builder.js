@@ -1,11 +1,14 @@
 const STRATEGIES_KEY = "trade-lab-strategies-v1";
 const DRAFT_KEY = "trade-lab-strategy-draft-v1";
+const RESULTS_KEY = "trade-lab-backtest-results-v1";
+const PENDING_KEY = "trade-lab-pending-backtest-v1";
 const form = document.querySelector("#strategy-form");
 const savedList = document.querySelector("#saved-list");
 const emptyState = document.querySelector("#empty-state");
 const toast = document.querySelector("#toast");
 const draftStatus = document.querySelector("#draft-status");
 let toastTimer;
+let activeStrategyId = null;
 
 function readForm() {
   const values = Object.fromEntries(new FormData(form).entries());
@@ -62,6 +65,15 @@ function writeSavedStrategies(strategies) {
   localStorage.setItem(STRATEGIES_KEY, JSON.stringify(strategies));
 }
 
+function readBacktestResults() {
+  try {
+    const results = JSON.parse(localStorage.getItem(RESULTS_KEY) || "{}");
+    return results && typeof results === "object" && !Array.isArray(results) ? results : {};
+  } catch {
+    return {};
+  }
+}
+
 function formatInr(value) {
   return new Intl.NumberFormat("en-IN", {
     maximumFractionDigits: 2,
@@ -94,7 +106,7 @@ function updateSummary() {
   setSummaryText("summary-cost", `₹${formatInr(strategy.assumptions.brokeragePerOrderInr)} / order`);
 }
 
-function makeSavedItem(record) {
+function makeSavedItem(record, results) {
   const item = document.createElement("li");
   item.className = "saved-item";
 
@@ -105,6 +117,14 @@ function makeSavedItem(record) {
   const details = document.createElement("p");
   details.textContent = `${record.strategy.market.exchange} · ${record.strategy.market.universe} · ${record.strategy.market.timeframe} · ${new Date(record.savedAt).toLocaleDateString()}`;
   copy.append(title, details);
+
+  const result = results[record.id];
+  if (result) {
+    const resultSummary = document.createElement("p");
+    resultSummary.className = "saved-result-summary";
+    resultSummary.textContent = `Last test: ₹${formatInr(result.metrics.netPnl)} net · ${result.metrics.tradeCount} trades`;
+    copy.appendChild(resultSummary);
+  }
 
   const actions = document.createElement("div");
   actions.className = "saved-item-actions";
@@ -118,14 +138,26 @@ function makeSavedItem(record) {
   removeButton.dataset.action = "remove";
   removeButton.dataset.id = record.id;
   removeButton.textContent = "Remove";
-  actions.append(loadButton, removeButton);
+  const testButton = document.createElement("button");
+  testButton.type = "button";
+  testButton.dataset.action = "test";
+  testButton.dataset.id = record.id;
+  testButton.textContent = "Test";
+  const resultsButton = document.createElement("button");
+  resultsButton.type = "button";
+  resultsButton.dataset.action = "results";
+  resultsButton.dataset.id = record.id;
+  resultsButton.textContent = results[record.id] ? "Results" : "No results";
+  resultsButton.disabled = !results[record.id];
+  actions.append(loadButton, testButton, resultsButton, removeButton);
   item.append(copy, actions);
   return item;
 }
 
 function renderSavedStrategies() {
   const strategies = readSavedStrategies();
-  savedList.replaceChildren(...strategies.map(makeSavedItem));
+  const results = readBacktestResults();
+  savedList.replaceChildren(...strategies.map((record) => makeSavedItem(record, results)));
   emptyState.hidden = strategies.length > 0;
   document.querySelector("#saved-count").textContent = String(strategies.length);
 }
@@ -210,6 +242,7 @@ form.addEventListener("submit", (event) => {
 
   try {
     writeSavedStrategies([record, ...readSavedStrategies()]);
+    activeStrategyId = record.id;
     localStorage.setItem(DRAFT_KEY, JSON.stringify(strategy));
     renderSavedStrategies();
     draftStatus.textContent = "Saved in this browser";
@@ -226,14 +259,28 @@ savedList.addEventListener("click", (event) => {
   const record = strategies.find((item) => item.id === button.dataset.id);
 
   if (button.dataset.action === "load" && record) {
+    activeStrategyId = record.id;
     populateForm(record.strategy);
     draftStatus.textContent = "Loaded from this browser";
     showToast("Strategy loaded into the form.");
   }
 
+  if ((button.dataset.action === "test" || button.dataset.action === "results") && record) {
+    const mode = button.dataset.action === "results" ? "view" : "run";
+    localStorage.setItem(PENDING_KEY, JSON.stringify({
+      strategyId: record.id,
+      strategy: record.strategy,
+      mode,
+    }));
+    window.location.href = "strategy-engine.html";
+  }
+
   if (button.dataset.action === "remove") {
     try {
       writeSavedStrategies(strategies.filter((item) => item.id !== button.dataset.id));
+      const results = readBacktestResults();
+      delete results[button.dataset.id];
+      localStorage.setItem(RESULTS_KEY, JSON.stringify(results));
       renderSavedStrategies();
       showToast("Saved strategy removed.");
     } catch {
@@ -245,9 +292,26 @@ savedList.addEventListener("click", (event) => {
 document.querySelector("#export-button").addEventListener("click", exportStrategy);
 
 document.querySelector("#backtest-button").addEventListener("click", () => {
+  if (!form.reportValidity()) return;
   const strategy = readForm();
   try {
-    localStorage.setItem("trade-lab-last-strategy", JSON.stringify(strategy));
+    const strategies = readSavedStrategies();
+    let record = strategies.find((item) => item.id === activeStrategyId);
+    if (!record || JSON.stringify(record.strategy) !== JSON.stringify(strategy)) {
+      record = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        savedAt: new Date().toISOString(),
+        strategy,
+      };
+      writeSavedStrategies([record, ...strategies]);
+      activeStrategyId = record.id;
+      renderSavedStrategies();
+    }
+    localStorage.setItem(PENDING_KEY, JSON.stringify({
+      strategyId: record.id,
+      strategy: record.strategy,
+      mode: "run",
+    }));
     window.location.href = "strategy-engine.html";
   } catch {
     showToast("Could not start the backtest engine from this browser.");

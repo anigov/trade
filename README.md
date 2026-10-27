@@ -175,7 +175,9 @@ Run it from the repository root with:
 python3 server.py
 ```
 
-Open `http://localhost:8001/` for the strategy builder. Save a strategy and choose “Run sample backtest” to load database rows via `/api/ohlcv`. The strategy definition remains in browser storage. The backtest is a prototype and must not be used to infer real-world strategy performance.
+Open `http://localhost:8001/` for the strategy builder. Save a strategy and choose “Run sample backtest” to load database rows via `/api/ohlcv`. Saved strategies include actions to load, test, or reopen their last saved results. Backtest metrics and trades are stored in browser local storage by strategy version; the strategy definition remains in browser storage as well. The backtest is a prototype and must not be used to infer real-world strategy performance.
+
+Open `http://localhost:8001/fundamentals.html` for a configurable company screen. Company fundamental records are stored in SQLite with a required source and as-of date. Add or update figures, set any combination of min/max thresholds, and use the matching list as a research shortlist. This prototype does not fetch or independently validate those figures and does not label matches as recommendations.
 
 `market_data_service.py` currently defines placeholders only: no open-source historical provider download or Kite, Dhan, or Mirae realtime integration is implemented. Until those adapters are added and verified, database contents remain seeded demo data; do not describe them as live, broker-sourced, or actual historical prices.
 

@@ -1,4 +1,7 @@
 const STORAGE_KEY = 'trade-lab-last-strategy';
+const PENDING_KEY = 'trade-lab-pending-backtest-v1';
+const CURRENT_KEY = 'trade-lab-current-backtest-v1';
+const RESULTS_KEY = 'trade-lab-backtest-results-v1';
 const tradeBody = document.getElementById('trades-body');
 const finalCapitalEl = document.getElementById('final-capital');
 const netPnlEl = document.getElementById('net-pnl');
@@ -27,20 +30,36 @@ function formatPercent(value) {
   return `${Number(value || 0).toFixed(2)}%`;
 }
 
-function loadStrategy() {
+function loadBacktestRequest() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      throw new Error('No saved strategy found. Go back to Strategy Builder and save one first.');
+    const pending = localStorage.getItem(PENDING_KEY);
+    if (pending) {
+      const request = JSON.parse(pending);
+      localStorage.setItem(CURRENT_KEY, pending);
+      localStorage.removeItem(PENDING_KEY);
+      return request;
     }
 
-    const strategy = JSON.parse(raw);
-    if (!strategy || !strategy.name) {
-      throw new Error('The saved strategy is incomplete.');
+    const current = localStorage.getItem(CURRENT_KEY);
+    if (current) return JSON.parse(current);
+
+    const legacyStrategy = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!legacyStrategy?.name) {
+      throw new Error('No saved strategy found. Return to the Strategy Builder and save one first.');
     }
-    return strategy;
+
+    return { strategyId: null, strategy: legacyStrategy, mode: 'run' };
   } catch (error) {
-    throw new Error(error.message || 'Unable to load the saved strategy.');
+    throw new Error(error.message || 'Unable to load the selected strategy.');
+  }
+}
+
+function readSavedResults() {
+  try {
+    const results = JSON.parse(localStorage.getItem(RESULTS_KEY) || '{}');
+    return results && typeof results === 'object' && !Array.isArray(results) ? results : {};
+  } catch {
+    return {};
   }
 }
 
@@ -83,7 +102,7 @@ function average(values) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function runSampleBacktest(strategy, datasetBySymbol) {
+function runSampleBacktest(strategy, datasetBySymbol, strategyId) {
   const capital = Number(strategy.risk.capitalInr || 100000);
   const brokerage = Number(strategy.assumptions.brokeragePerOrderInr || 20);
   const maxPositions = Number(strategy.risk.maxOpenPositions || 5);
@@ -159,7 +178,8 @@ function runSampleBacktest(strategy, datasetBySymbol) {
           exit: exitValue,
           qty: pos.qty,
           pnl: tradePnl,
-          date: current.date,
+          entryDate: pos.entryDate,
+          exitDate: current.date,
         });
         positions.splice(j, 1);
       }
@@ -168,45 +188,93 @@ function runSampleBacktest(strategy, datasetBySymbol) {
 
   const netPnl = trades.reduce((sum, trade) => sum + trade.pnl, 0);
   const winCount = trades.filter((trade) => trade.pnl > 0).length;
-  const equityCurve = [capital];
-  for (let i = 0; i < trades.length; i += 1) {
-    equityCurve.push((equityCurve[equityCurve.length - 1] + trades[i].pnl) || capital);
+  let equity = capital;
+  let peak = capital;
+  let maxDrawdown = 0;
+  for (const trade of trades) {
+    equity += trade.pnl;
+    peak = Math.max(peak, equity);
+    if (peak > 0) maxDrawdown = Math.max(maxDrawdown, ((peak - equity) / peak) * 100);
   }
-  const peak = Math.max(...equityCurve, capital);
-  const trough = Math.min(...equityCurve, capital);
-  const maxDrawdown = peak === 0 ? 0 : ((peak - trough) / peak) * 100;
 
-  const resultRows = trades.map((trade) => {
+  return {
+    strategyId,
+    strategyName: strategy.name || 'Untitled strategy',
+    runAt: new Date().toISOString(),
+    dataSource: 'SQLite demo-seed data',
+    metrics: {
+      startingCapital: capital,
+      finalCapital: capital + netPnl,
+      netPnl,
+      tradeCount: trades.length,
+      winRatePct: trades.length ? (winCount / trades.length) * 100 : 0,
+      maxDrawdownPct: maxDrawdown,
+    },
+    trades,
+  };
+}
+
+function renderResult(strategy, result) {
+  const metrics = result.metrics;
+  const resultRows = result.trades.map((trade) => {
     const row = document.createElement('tr');
-    const pnlClass = trade.pnl >= 0 ? 'positive' : 'negative';
-    row.innerHTML = `
-      <td>${trade.symbol}</td>
-      <td>${trade.side}</td>
-      <td>₹${formatMoney(trade.entry)}</td>
-      <td>₹${formatMoney(trade.exit)}</td>
-      <td>${trade.qty}</td>
-      <td class="${pnlClass}">₹${formatMoney(trade.pnl)}</td>
-    `;
+    const values = [
+      trade.symbol,
+      `${trade.entryDate || '—'} → ${trade.exitDate || '—'}`,
+      trade.side,
+      `₹${formatMoney(trade.entry)}`,
+      `₹${formatMoney(trade.exit)}`,
+      String(trade.qty),
+    ];
+    for (const value of values) {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      row.appendChild(cell);
+    }
+    const pnlCell = document.createElement('td');
+    pnlCell.className = trade.pnl >= 0 ? 'positive' : 'negative';
+    pnlCell.textContent = `₹${formatMoney(trade.pnl)}`;
+    row.appendChild(pnlCell);
     return row;
   });
 
   tradeBody.replaceChildren(...resultRows);
-
-  finalCapitalEl.textContent = `₹${formatMoney(capital + netPnl)}`;
-  netPnlEl.textContent = `₹${formatMoney(netPnl)}`;
-  tradeCountEl.textContent = String(trades.length);
-  winRateEl.textContent = formatPercent(trades.length ? (winCount / trades.length) * 100 : 0);
-  maxDrawdownEl.textContent = formatPercent(maxDrawdown);
-  engineUniverseEl.textContent = universeSelection.length ? universeSelection.join(', ') : 'N/A';
+  finalCapitalEl.textContent = `₹${formatMoney(metrics.finalCapital)}`;
+  netPnlEl.textContent = `₹${formatMoney(metrics.netPnl)}`;
+  tradeCountEl.textContent = String(metrics.tradeCount);
+  winRateEl.textContent = formatPercent(metrics.winRatePct);
+  maxDrawdownEl.textContent = formatPercent(metrics.maxDrawdownPct);
+  engineUniverseEl.textContent = strategy.market.universeSelection?.length
+    ? strategy.market.universeSelection.join(', ')
+    : strategy.market.universe || 'N/A';
   engineTitleEl.textContent = strategy.name || 'Strategy Engine';
+  document.getElementById('run-time').textContent = new Date(result.runAt).toLocaleString();
+  document.getElementById('data-source').textContent = result.dataSource || 'Unknown';
 }
 
-async function main() {
+async function main(forceRun = false) {
   try {
     clearError();
-    const strategy = loadStrategy();
+    const request = loadBacktestRequest();
+    if (!request.strategy?.name) throw new Error('The selected strategy is incomplete.');
+
+    const savedResult = request.strategyId ? readSavedResults()[request.strategyId] : null;
+    if (!forceRun && request.mode === 'view') {
+      if (!savedResult) throw new Error('No backtest result has been saved for this strategy yet.');
+      renderResult(request.strategy, savedResult);
+      return;
+    }
+
     const datasetBySymbol = await loadSampleDataset();
-    runSampleBacktest(strategy, datasetBySymbol);
+    const result = runSampleBacktest(request.strategy, datasetBySymbol, request.strategyId);
+    if (request.strategyId) {
+      const results = readSavedResults();
+      results[request.strategyId] = result;
+      localStorage.setItem(RESULTS_KEY, JSON.stringify(results));
+    }
+    request.mode = 'view';
+    localStorage.setItem(CURRENT_KEY, JSON.stringify(request));
+    renderResult(request.strategy, result);
   } catch (error) {
     showError(error.message || 'Unable to run the sample backtest.');
     finalCapitalEl.textContent = '₹0';
@@ -219,6 +287,6 @@ async function main() {
 }
 
 document.getElementById('rerun-button').addEventListener('click', () => {
-  main();
+  main(true);
 });
 main();
