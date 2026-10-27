@@ -1,78 +1,35 @@
-import sqlite3
 import math
 from pathlib import Path
 from datetime import date, timedelta
 
-DB_PATH = Path(__file__).resolve().parent / 'market_data.db'
+from data.database import (
+    DEFAULT_SQLITE_PATH,
+    connect_db,
+    ensure_db as ensure_database,
+    execute_sql,
+)
+
+DB_PATH = DEFAULT_SQLITE_PATH
 
 
 def ensure_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute(
-        '''
-        CREATE TABLE IF NOT EXISTS ohlcv (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            symbol TEXT NOT NULL,
-            exchange TEXT NOT NULL,
-            date TEXT NOT NULL,
-            open REAL NOT NULL,
-            high REAL NOT NULL,
-            low REAL NOT NULL,
-            close REAL NOT NULL,
-            volume INTEGER NOT NULL,
-            source TEXT NOT NULL,
-            UNIQUE(symbol, exchange, date)
-        )
-        '''
-    )
-    conn.execute(
-        '''
-        CREATE TABLE IF NOT EXISTS meta (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-        )
-        '''
-    )
-    conn.execute(
-        '''
-        CREATE TABLE IF NOT EXISTS company_fundamentals (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            symbol TEXT NOT NULL,
-            exchange TEXT NOT NULL DEFAULT 'NSE',
-            company_name TEXT NOT NULL,
-            sector TEXT NOT NULL DEFAULT '',
-            market_cap_cr REAL,
-            pe_ratio REAL,
-            roe_pct REAL,
-            roce_pct REAL,
-            debt_equity REAL,
-            revenue_growth_pct REAL,
-            profit_growth_pct REAL,
-            promoter_holding_pct REAL,
-            source TEXT NOT NULL,
-            as_of_date TEXT NOT NULL,
-            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(symbol, exchange)
-        )
-        '''
-    )
-    conn.commit()
-    conn.close()
+    ensure_database()
 
 
 def insert_rows(rows):
     if not rows:
         return 0
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    conn = connect_db()
     inserted = 0
-    for row in rows:
-        try:
-            cursor.execute(
+    try:
+        for row in rows:
+            cursor = execute_sql(
+                conn,
                 '''
                 INSERT INTO ohlcv (symbol, exchange, date, open, high, low, close, volume, source)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(symbol, exchange, date) DO NOTHING
                 ''',
                 (
                     row['symbol'],
@@ -86,11 +43,13 @@ def insert_rows(rows):
                     row.get('source', 'demo'),
                 ),
             )
-            inserted += 1
-        except sqlite3.IntegrityError:
-            continue
-    conn.commit()
-    conn.close()
+            inserted += cursor.rowcount
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
     return inserted
 
 
@@ -136,15 +95,15 @@ def seed_demo_data():
 
 
 def count_rows():
-    conn = sqlite3.connect(DB_PATH)
-    count = conn.execute('SELECT COUNT(*) FROM ohlcv').fetchone()[0]
-    conn.close()
-    return count
+    conn = connect_db()
+    try:
+        return int(execute_sql(conn, 'SELECT COUNT(*) AS total FROM ohlcv').fetchone()['total'])
+    finally:
+        conn.close()
 
 
 def get_ohlcv(symbols=None, limit=None):
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    conn = connect_db()
     query = 'SELECT symbol, exchange, date, open, high, low, close, volume, source FROM ohlcv'
     params = []
     if symbols:
@@ -155,7 +114,7 @@ def get_ohlcv(symbols=None, limit=None):
     if limit:
         query += ' LIMIT ?'
         params.append(limit)
-    rows = conn.execute(query, params).fetchall()
+    rows = execute_sql(conn, query, params).fetchall()
     conn.close()
     return [dict(row) for row in rows]
 
@@ -173,15 +132,15 @@ FUNDAMENTAL_FIELDS = (
 
 
 def get_fundamentals():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    rows = conn.execute(
+    conn = connect_db()
+    rows = execute_sql(
+        conn,
         '''
         SELECT symbol, exchange, company_name, sector, market_cap_cr, pe_ratio,
                roe_pct, roce_pct, debt_equity, revenue_growth_pct,
                profit_growth_pct, promoter_holding_pct, source, as_of_date, updated_at
         FROM company_fundamentals
-        ORDER BY company_name COLLATE NOCASE
+         ORDER BY LOWER(company_name)
         '''
     ).fetchall()
     conn.close()
@@ -220,8 +179,9 @@ def upsert_fundamentals(record):
     if numeric_values['promoter_holding_pct'] is not None and not 0 <= numeric_values['promoter_holding_pct'] <= 100:
         raise ValueError('Promoter holding must be between 0 and 100 percent.')
 
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute(
+    conn = connect_db()
+    execute_sql(
+        conn,
         '''
         INSERT INTO company_fundamentals (
             symbol, exchange, company_name, sector, market_cap_cr, pe_ratio,
@@ -250,8 +210,9 @@ def upsert_fundamentals(record):
 
 
 def delete_fundamentals(symbol, exchange='NSE'):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.execute(
+    conn = connect_db()
+    cursor = execute_sql(
+        conn,
         'DELETE FROM company_fundamentals WHERE symbol = ? AND exchange = ?',
         (str(symbol).strip().upper(), str(exchange).strip().upper()),
     )

@@ -172,14 +172,41 @@ The current prototype serves the strategy builder and backtest engine from `serv
 Run it from the repository root with:
 
 ```sh
+python3 -m pip install -r requirements.txt
+python3 create_user.py localdev
 python3 server.py
 ```
 
-Open `http://localhost:8001/` for the strategy builder. Save a strategy and choose “Run sample backtest” to load database rows via `/api/ohlcv`. Saved strategies include actions to load, test, or reopen their last saved results. Backtest metrics and trades are stored in browser local storage by strategy version; the strategy definition remains in browser storage as well. The backtest is a prototype and must not be used to infer real-world strategy performance.
+Open `http://localhost:8001/` and sign in with the developer account you created. There is no public registration. Save a strategy and choose “Run sample backtest” to load database rows via `/api/ohlcv`. Saved strategies include actions to load, test, or reopen their last saved results. Backtest metrics and trades are stored in browser local storage by strategy version; the strategy definition remains in browser storage as well. The backtest is a prototype and must not be used to infer real-world strategy performance.
 
 Open `http://localhost:8001/fundamentals.html` for a configurable company screen. Company fundamental records are stored in SQLite with a required source and as-of date. Add or update figures, set any combination of min/max thresholds, and use the matching list as a research shortlist. This prototype does not fetch or independently validate those figures and does not label matches as recommendations.
 
 `market_data_service.py` currently defines placeholders only: no open-source historical provider download or Kite, Dhan, or Mirae realtime integration is implemented. Until those adapters are added and verified, database contents remain seeded demo data; do not describe them as live, broker-sourced, or actual historical prices.
+
+## Render, Neon, and GitHub Actions
+
+The production image is built by GitHub Actions, pushed to GitHub Container Registry (GHCR), and deployed to Render through the Render service's deploy hook. Render image-backed services do not redeploy automatically when a tag changes; the workflow sends the pushed immutable commit tag through the hook. This is a registry pull by Render, not a direct Docker push into a running Render service.
+
+`deploy/settings.env` is the non-secret configuration source for the GHCR image name, Render service/owner/region/plan/port/health path, and Neon project/branch/database/region identifiers. Fill in the IDs and region after creating the resources. Edit it when changing the target service or image. Do not put secret values or connection URLs in this file. Configure this GitHub Actions secret:
+
+- `RENDER_DEPLOY_HOOK_URL`: deploy hook copied from the Render image-backed service settings.
+- `GITHUB_TOKEN` is supplied by GitHub Actions for GHCR publishing; the workflow requests package write permission.
+
+Create an image-backed Render web service once, using the image URL from `deploy/settings.env` with the `latest` tag. If the GHCR package is private, configure GHCR pull credentials for the Render service. Set these Render environment variables:
+
+- `APP_ENV=production`
+- `DATABASE_URL`: Neon PostgreSQL connection URL, including `sslmode=require`; use Neon’s pooled connection URL for the app.
+- `COOKIE_SECURE=true`
+- `SESSION_TTL_SECONDS=28800`
+- `SEED_DEMO_DATA=false`
+
+Keep the Neon connection string only in the Render service environment as `DATABASE_URL` (include `sslmode=require`; use Neon’s pooled hostname). Keep the deploy hook URL only in GitHub Actions secrets. Never paste either secret into `deploy/settings.env`, workflow YAML, Docker build args, or a committed `.env` file.
+
+Render supplies `PORT`; the server binds to it. `/api/health` is the public health check. The production process refuses to start without `DATABASE_URL`, and never seeds demo OHLCV in production.
+
+After the Render service has Neon configured, create developer accounts using `python create_user.py <username>` from an authenticated shell with the same `DATABASE_URL`. The command prompts for the password without echoing it. Do not add a public signup route or a default account.
+
+The workflow runs unit/integration tests and builds the Docker image for pull requests. On pushes to `main`, it publishes `latest` and an immutable commit-SHA tag to GHCR, then calls the Render deploy hook. If `RENDER_DEPLOY_HOOK_URL` is absent, it reports that deployment was skipped instead of failing the test/build path. Configure a separate Neon branch/database for preview environments; this workflow does not deploy pull requests or connect them to production data.
 
 ## Decisions Before Data Integration
 

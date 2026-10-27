@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#eef1eb">
+    <title>Sign in | Trade Lab</title>
+    <link rel="stylesheet" href="login.css">
+    <script src="login.js" defer></script>
+  </head>
+  <body>
+    <main class="login-shell">
+      <a class="wordmark" href="/login.html" aria-label="Trade Lab sign in">
+        <span class="brand-mark" aria-hidden="true">T</span>
+        <span>trade<span class="wordmark-light">lab</span></span>
+      </a>
+      <section class="login-panel" aria-labelledby="login-title">
+        <p class="eyebrow">PRIVATE DEVELOPER WORKSPACE</p>
+        <h1 id="login-title">Sign in</h1>
+        <p class="login-copy">Use an account provisioned by the workspace administrator.</p>
+        <form id="login-form">
+          <label class="field" for="username">Username
+            <input id="username" name="username" autocomplete="username" maxlength="48" required>
+          </label>
+          <label class="field" for="password">Password
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button class="button button-primary" type="submit">Sign in</button>
+          <p id="login-status" class="login-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <p class="login-note">Accounts are created by an administrator. Public registration is disabled.</p>
+    </main>
+  </body>
+</html>

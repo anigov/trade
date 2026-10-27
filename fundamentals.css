@@ -2,6 +2,9 @@
 .page-nav a { color: var(--muted); font-size: 11px; font-weight: 750; text-decoration: none; }
 .page-nav a:hover, .page-nav a.active { color: var(--green-deep); text-decoration: underline; text-underline-offset: 4px; }
 .page-nav a:focus-visible { outline: 2px solid var(--coral); outline-offset: 3px; }
+.current-user { color: var(--green-deep); font-size: 10px; font-weight: 800; }
+.logout-button { padding: 5px 8px; border: 1px solid #aebbb2; border-radius: 2px; color: var(--green-deep); background: transparent; font-size: 10px; font-weight: 750; cursor: pointer; }
+.logout-button:hover { background: #eff4ef; }
 .data-note { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 22px; padding: 14px 16px; border-left: 3px solid var(--coral); color: #4b5e55; background: rgba(251, 252, 249, .85); font-size: 12px; }
 .data-note strong { color: var(--ink); }
 .workspace-grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, .85fr); }

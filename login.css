@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light;
+  --ink: #172923;
+  --muted: #63716b;
+  --line: #d5ddd6;
+  --paper: #fbfcf9;
+  --canvas: #eef1eb;
+  --green: #1f5a47;
+  --green-deep: #183d33;
+  --coral: #c95f4b;
+}
+* { box-sizing: border-box; }
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  background-color: var(--canvas);
+  background-image: linear-gradient(rgba(23, 41, 35, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 41, 35, .025) 1px, transparent 1px);
+  background-size: 24px 24px;
+  font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+}
+.login-shell { width: min(440px, calc(100% - 32px)); }
+.wordmark { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 30px; color: var(--ink); font-size: 17px; font-weight: 800; text-decoration: none; }
+.brand-mark { width: 29px; height: 29px; display: grid; place-items: center; color: #d4f06e; background: var(--green-deep); font-family: Georgia, serif; }
+.wordmark-light { color: var(--green); font-weight: 500; }
+.login-panel { padding: 32px; border: 1px solid var(--line); border-top: 4px solid var(--green); background: var(--paper); }
+.eyebrow { margin: 0 0 10px; color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+h1 { margin: 0 0 6px; font: 500 36px/1.1 Georgia, "Times New Roman", serif; }
+.login-copy { margin: 0 0 24px; color: var(--muted); font-size: 13px; }
+#login-form { display: grid; gap: 16px; }
+.field { display: grid; gap: 7px; color: #35463f; font-size: 12px; font-weight: 700; }
+.field input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #cbd5cd; border-radius: 2px; color: var(--ink); background: white; font: inherit; font-weight: 500; }
+.field input:focus { outline: 3px solid rgba(31, 90, 71, .14); border-color: var(--green); }
+.button { min-height: 44px; border: 0; border-radius: 2px; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+.button-primary { color: white; background: var(--green); }
+.button-primary:hover { background: var(--green-deep); }
+.login-status { min-height: 18px; margin: 0; color: #a3483b; font-size: 12px; }
+.login-note { margin: 16px 0 0; color: var(--muted); font-size: 11px; text-align: center; }

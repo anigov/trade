@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Strategy Engine | Trade Lab</title>
     <link rel="stylesheet" href="strategy-engine.css">
+    <script src="auth-ui.js" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -15,6 +16,7 @@
           <a href="strategy-builder.html#saved-title">Saved strategies</a>
           <a href="fundamentals.html">Fundamental screen</a>
         </nav>
+        <div class="session-controls"><span id="current-user" class="current-user"></span><button id="logout-button" class="logout-button" type="button">Sign out</button></div>
         <div class="status-badge">
           <span class="dot"></span>
           Local backtest engine

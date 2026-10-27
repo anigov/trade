@@ -1,3 +1,7 @@
 __pycache__/
 *.py[cod]
 data/market_data.db
+.env
+.env.*
+!.env.example
+deploy/*.env.local

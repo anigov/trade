@@ -7,6 +7,7 @@
     <title>Strategy Intake | Trade Lab</title>
     <link rel="stylesheet" href="strategy-builder.css">
     <script src="strategy-builder.js" defer></script>
+    <script src="auth-ui.js" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -21,6 +22,8 @@
           <a class="page-nav-link" href="#saved-title">Saved strategies</a>
           <a class="page-nav-link" href="strategy-engine.html">Backtest engine</a>
           <a class="page-nav-link" href="fundamentals.html">Fundamental screen</a>
+          <span id="current-user" class="current-user"></span>
+          <button id="logout-button" class="logout-button" type="button">Sign out</button>
           <span class="step-label">SETUP <b>01</b> / 09</span>
         </div>
       </header>

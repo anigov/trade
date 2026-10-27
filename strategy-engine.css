@@ -32,6 +32,10 @@ body {
 .page-nav a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
 .page-nav a:hover { color: var(--cyan); }
 .page-nav a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.session-controls { display: flex; align-items: center; gap: 10px; }
+.current-user { color: var(--muted); font-size: 0.8rem; }
+.logout-button { border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; color: var(--ink); background: transparent; cursor: pointer; }
+.logout-button:hover { border-color: var(--cyan); color: var(--cyan); }
 .status-badge {
   display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px;
   background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35); color: #bbf7d0;
